@@ -1,7 +1,7 @@
 import logo from "../../assets/logo.svg";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { Link } from "react-router-dom";
-import { useDeferredValue, useState } from "react";
+import { Suspense, useDeferredValue, useState } from "react";
 import ProductCategories from "../body/ProductPage";
 
 const Header = () => {
@@ -32,7 +32,9 @@ const Header = () => {
         </Link>
       </header>
 
-      <ProductCategories Search={deferredSearchTerm} />
+      <Suspense fallback={<h2>Loading...</h2>}>
+        <ProductCategories Search={deferredSearchTerm} />
+      </Suspense>
     </>
   );
 };
