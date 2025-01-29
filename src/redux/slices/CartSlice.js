@@ -9,39 +9,43 @@ const cartSlice = createSlice({
   },
   reducers: {
     addToCart(state, action) {
-        const newItem = action.payload;
-        const existingItemIndex = state.items.findIndex(
-          item => item.id === newItem.id && item.selectedColor === (newItem.selectedColor || 'default')
-        );
-        
-        if (existingItemIndex === -1) {
-            state.items.push({
-                ...newItem,
-                selectedColor: newItem.selectedColor || 'default',
-                quantity: 1
-            });
-        } else {
-            state.items[existingItemIndex].quantity++;
-        }
-        
-        state.totalQuantity++;
-        state.totalAmount += newItem.price;
+      if (state.totalQuantity >= 10) {
+        return; // Prevent adding more than 10 items
+      }
+
+      const newItem = action.payload;
+      const existingItemIndex = state.items.findIndex(
+        item => item.id === newItem.id && item.selectedColor === (newItem.selectedColor || 'default')
+      );
+
+      if (existingItemIndex === -1) {
+        state.items.push({
+          ...newItem,
+          selectedColor: newItem.selectedColor || 'default',
+          quantity: 1
+        });
+      } else {
+        state.items[existingItemIndex].quantity++;
+      }
+
+      state.totalQuantity++;
+      state.totalAmount += newItem.price;
     },
     removeFromCart(state, action) {
       const { id, selectedColor } = action.payload;
       const existingItemIndex = state.items.findIndex(
         item => item.id === id && item.selectedColor === (selectedColor || 'default')
       );
-      
+
       if (existingItemIndex !== -1) {
         const existingItem = state.items[existingItemIndex];
-        
+
         if (existingItem.quantity === 1) {
           state.items.splice(existingItemIndex, 1);
         } else {
           existingItem.quantity--;
         }
-        
+
         state.totalQuantity--;
         state.totalAmount -= existingItem.price;
       }
