@@ -9,28 +9,29 @@ const cartSlice = createSlice({
   },
   reducers: {
     addToCart(state, action) {
-      if (state.totalQuantity >= 10) {
-        return; // Prevent adding more than 10 items
-      }
 
       const newItem = action.payload;
       const existingItemIndex = state.items.findIndex(
         item => item.id === newItem.id && item.selectedColor === (newItem.selectedColor || 'default')
       );
 
-      if (existingItemIndex === -1) {
+       if (existingItemIndex !== -1) {
+        if (state.items[existingItemIndex].quantity >= 10) {
+          return; 
+        }
+        state.items[existingItemIndex].quantity++;
+      } else {
         state.items.push({
           ...newItem,
           selectedColor: newItem.selectedColor || 'default',
           quantity: 1
         });
-      } else {
-        state.items[existingItemIndex].quantity++;
       }
 
       state.totalQuantity++;
       state.totalAmount += newItem.price;
     },
+
     removeFromCart(state, action) {
       const { id, selectedColor } = action.payload;
       const existingItemIndex = state.items.findIndex(
