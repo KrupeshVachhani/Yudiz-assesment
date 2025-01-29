@@ -39,7 +39,7 @@ const ProductCard = ({
 
   return (
     <div
-      className="border rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col cursor-pointer"
+      className="border rounded-lg p-4 border-black hover:shadow-md transition-shadow flex flex-col cursor-pointer"
       onClick={handleProductClick}
     >
       <div className="flex justify-center items-center mb-4">
@@ -73,7 +73,7 @@ const ProductCard = ({
         </div>
         <button
           onClick={handleAddToCartClick}
-          className="w-full mt-2 bg-gray-100 text-black py-2 rounded hover:bg-gray-400 hover:cursor-pointer transition-colors"
+          className="w-full mt-2 bg-gray-100 border border-black text-black py-2 rounded hover:bg-gray-400 hover:cursor-pointer transition-colors"
         >
           Add to Cart
         </button>

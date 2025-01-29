@@ -111,6 +111,7 @@ const ProductCategories = ({ Search }) => {
 
   return (
     <div className="container mx-auto px-16 mt-4">
+      
       <div className="mb-4">
         <div className="relative">
           <button
