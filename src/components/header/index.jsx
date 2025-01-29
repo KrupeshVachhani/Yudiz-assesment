@@ -2,10 +2,7 @@ import logo from "../../assets/logo.svg";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { useDeferredValue, useState } from "react";
-import { lazy, Suspense } from "react";
-import ShimmerUIProducts from "../../helper/ShimmerUIProducts";
-
-const ProductCategories = lazy(() => import("../body/ProductPage"));
+import ProductCategories from "../body/ProductPage";
 
 const Header = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,9 +32,7 @@ const Header = () => {
         </Link>
       </header>
 
-      <Suspense fallback={ShimmerUIProducts}>
-        <ProductCategories Search={deferredSearchTerm} />
-      </Suspense>
+      <ProductCategories Search={deferredSearchTerm} />
     </>
   );
 };

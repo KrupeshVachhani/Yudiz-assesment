@@ -6,7 +6,7 @@ import { addToCart } from "../../../redux/slices/CartSlice";
 import PropTypes from "prop-types";
 import { ChevronDown, X } from "lucide-react";
 import ProductCard from "./ProductCard";
-import { usePagination } from "../../../hooks/UsePagination.js";
+import { usePagination } from "../../../hooks/UsePagination.jsx";
 
 const ProductCategories = ({ Search }) => {
   const [products, setProducts] = useState([]);
