@@ -41,6 +41,14 @@ const CartPage = () => {
   }
 
   return (
+   <div className="container mx-auto px-4 py-8">
+   <button
+        onClick={() => navigate(-1)}
+        className="flex items-center text-gray-600 hover:text-gray-400 hover:cursor-pointer mb-6"
+      >
+        <ChevronLeft className="w-5 h-5 mr-1" />
+        Back
+      </button>
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-4xl font-bold text-center mb-6">Your Cart</h1>
 
@@ -139,6 +147,7 @@ const CartPage = () => {
         </div>
       </div>
     </div>
+   </div>
   );
 };
 
