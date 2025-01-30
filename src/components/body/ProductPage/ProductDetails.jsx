@@ -12,11 +12,11 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState("default");
   const [error, setError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -29,46 +29,48 @@ const ProductDetail = () => {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [id]);
 
   const handleAddToCart = () => {
     if (product) {
-      dispatch(addToCart({ ...product, selectedColor }));
-      toast.success("Added to cart successfully!", {
-        position: "top-center",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
+      dispatch(addToCart({ ...product, selectedColor, quantity }));
+      setQuantity(1);
+      toast.success(
+        `Added ${product.title} with quantity of ${quantity} to cart successfully!`,
+        {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        }
+      );
     }
   };
 
-  const handleGoToCart = ()=>{
+  const handleGoToCart = () => {
     navigate("/cart");
-  }
+  };
 
-  if (loading)
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-96 bg-gray-200 rounded-lg mb-4"></div>
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-        </div>
-      </div>
-    );
+  const incrementQuantity = () => {
+    setQuantity((prev) => Math.min(prev + 1, 10));
+  };
+
+  const decrementQuantity = () => {
+    setQuantity((prev) => Math.max(prev - 1, 1));
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   if (error)
     return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-red-500">{error}</p>
+      <div>
+        {error}
         <button
           onClick={() => navigate(-1)}
           className="mt-4 text-gray-100 hover:underline"
@@ -81,16 +83,15 @@ const ProductDetail = () => {
   if (!product) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="p-4">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center text-gray-200 hover:text-gray-400 hover:cursor-pointer mb-6"
       >
-        <ChevronLeft className="w-5 h-5 mr-1" />
+        <ChevronLeft />
         Back to Products
       </button>
-
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex justify-center items-center bg-white rounded-lg p-4">
           <img
             src={product.image}
@@ -98,24 +99,21 @@ const ProductDetail = () => {
             className="max-w-full h-auto max-h-[500px] object-contain"
           />
         </div>
-
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold mb-4 text-gray-600">
-            {product.title}
-          </h1>
-          <p className="text-3xl font-bold text-green-600 mb-4">
-            ${product.price}
-          </p>
-          <p className="text-gray-600 mb-6">{product.description}</p>
-
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Select Color</h3>
-            <div className="flex gap-4">
+        <div className="space-y-4 text-gray-800">
+          <h1 className="text-2xl font-bold">{product.title}</h1>
+          <p className="text-xl">${product.price}</p>
+          <p className="text-gray-600">{product.description}</p>
+          <div>
+            <h2 className="font-semibold">Select Color</h2>
+            <div className="flex space-x-2">
               {COLORS.map((color) => (
                 <button
-                  key={color.id}
-                  onClick={() => setSelectedColor(color.name)}
-                  className={`w-8 h-8 ${
+                  key={color.name}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedColor(color.name);
+                  }}
+                  className={`w-4 h-4 ${
                     color.code
                   } border rounded-full hover:cursor-pointer ${
                     selectedColor === color.name
@@ -126,6 +124,33 @@ const ProductDetail = () => {
               ))}
             </div>
           </div>
+          <div className="flex items-center mt-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                decrementQuantity();
+              }}
+              className="text-gray-800 w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-200 hover:cursor-pointer"
+            >
+              -
+            </button>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              className="w-10 p-1 border border-gray-300 rounded text-center text-gray-800 hover:cursor-default"
+            />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                incrementQuantity();
+              }}
+              className="text-gray-800 w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-200 hover:cursor-pointer"
+            >
+              +
+            </button>
+          </div>
+
           <div className="w-full flex flex-col gap-3">
             <button
               onClick={handleAddToCart}
@@ -140,19 +165,13 @@ const ProductDetail = () => {
               Go to Cart
             </button>
           </div>
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-2">Product Details</h3>
-            <div className="border-t pt-4">
-              <p className="text-gray-600 capitalize">
-                <span className="font-medium">Category:</span>{" "}
-                {product.category}
-              </p>
-              <p className="text-gray-600 mt-2">
-                <span className="font-medium">Rating:</span>{" "}
-                {product.rating?.rate || "N/A"} ({product.rating?.count || 0}{" "}
-                reviews)
-              </p>
-            </div>
+          <div className="mt-4 text-gray-800">
+            <h2 className="font-semibold">Product Details</h2>
+            <p>Category: {product.category}</p>
+            <p>
+              Rating: {product.rating?.rate || "N/A"} (
+              {product.rating?.count || 0} reviews)
+            </p>
           </div>
         </div>
       </div>
