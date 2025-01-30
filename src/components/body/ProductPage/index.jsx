@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import ShimmerUIProducts from "../../../helper/ShimmerUIProducts";
 import { useDispatch } from "react-redux";
+import ShimmerUIProducts from "../../../helper/ShimmerUIProducts";
 import { fetchGetApi } from "../../../helper/GetApi";
 import { addToCart } from "../../../redux/slices/CartSlice";
 import PropTypes from "prop-types";
@@ -16,6 +16,9 @@ const ProductCategories = ({ Search }) => {
   const [selectedColors, setSelectedColors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [sortBy, setSortBy] = useState("default");
 
   const itemsPerPage = 8;
   const dispatch = useDispatch();
@@ -25,10 +28,17 @@ const ProductCategories = ({ Search }) => {
       try {
         const responseProducts = await fetchGetApi("/products");
         const responseCategories = await fetchGetApi("/products/categories");
+        
+        const prices = responseProducts.map(product => product.price);
+        const minPrice = Math.floor(Math.min(...prices));
+        const maxPrice = Math.ceil(Math.max(...prices));
+        
         setProducts(responseProducts);
         setCategories(responseCategories);
+        setPriceRange({ min: minPrice, max: maxPrice });
         setLoading(false);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching data:", error);
         setLoading(false);
       }
     };
@@ -74,8 +84,19 @@ const ProductCategories = ({ Search }) => {
     setCurrentPage(1);
   };
 
+  const handlePriceRangeChange = (newRange) => {
+    setPriceRange(newRange);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (sortType) => {
+    setSortBy(sortType);
+    setIsSortDropdownOpen(false);
+    setCurrentPage(1);
+  };
+
   const filteredProducts = useMemo(() => {
-    return products.filter((item) => {
+    let filtered = products.filter((item) => {
       const matchesSearch = Search
         ? item.title.toLowerCase().includes(Search.toLowerCase()) ||
           item.description.toLowerCase().includes(Search.toLowerCase())
@@ -83,9 +104,26 @@ const ProductCategories = ({ Search }) => {
       const matchesCategory =
         selectedCategories.includes("all") ||
         selectedCategories.includes(item.category);
-      return matchesSearch && matchesCategory;
+      const matchesPrice =
+        item.price >= priceRange.min && item.price <= priceRange.max;
+      
+      return matchesSearch && matchesCategory && matchesPrice;
     });
-  }, [products, Search, selectedCategories]);
+
+    // Apply sorting
+    switch (sortBy) {
+      case "price_asc":
+        return [...filtered].sort((a, b) => a.price - b.price);
+      case "price_desc":
+        return [...filtered].sort((a, b) => b.price - a.price);
+      case "name_asc":
+        return [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+      case "name_desc":
+        return [...filtered].sort((a, b) => b.title.localeCompare(a.title));
+      default:
+        return filtered;
+    }
+  }, [products, Search, selectedCategories, priceRange, sortBy]);
 
   const pagination = usePagination({
     totalItems: filteredProducts.length,
@@ -108,7 +146,6 @@ const ProductCategories = ({ Search }) => {
 
   return (
     <div className="container mx-auto px-16 mt-4">
-      {/* Filters */}
       <ProductFilters
         categories={categories}
         selectedCategories={selectedCategories}
@@ -116,9 +153,18 @@ const ProductCategories = ({ Search }) => {
         onRemoveCategory={handleRemoveCategory}
         isDropdownOpen={isDropdownOpen}
         setIsDropdownOpen={setIsDropdownOpen}
+        isSortDropdownOpen={isSortDropdownOpen}
+        setIsSortDropdownOpen={setIsSortDropdownOpen}
+        products={products}
+        onPriceRangeChange={handlePriceRangeChange}
+        onSortChange={handleSortChange}
+        sortBy={sortBy}
       />
 
-      {/* Product Grid */}
+      <div className="mb-4 text-gray-600">
+        Showing {currentProducts.length} of {filteredProducts.length} products
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {currentProducts.map((product) => (
           <ProductCard
@@ -131,7 +177,12 @@ const ProductCategories = ({ Search }) => {
         ))}
       </div>
 
-      {/* Pagination */}
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No products found matching your criteria
+        </div>
+      )}
+
       {pagination.totalPages > 1 && (
         <div className="flex justify-center items-center space-x-2 mt-8 mb-8">
           <button

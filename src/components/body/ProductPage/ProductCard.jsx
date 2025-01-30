@@ -124,7 +124,7 @@ const ProductCard = ({
           Add to Cart
         </button>
       </div>
-      <ToastContainer />
+      <ToastContainer onClick={(e) => e.stopPropagation()} />
     </div>
   );
 };
