@@ -89,7 +89,7 @@ const ProductDetail = () => {
         className="flex items-center text-gray-200 hover:text-gray-400 hover:cursor-pointer mb-6"
       >
         <ChevronLeft />
-        Back to Products
+        Back
       </button>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex justify-center items-center bg-white rounded-lg p-4">

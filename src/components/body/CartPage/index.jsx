@@ -11,19 +11,25 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleRemoveFromCart = (product) => {
+  const handleRemoveFromCart = (e, product) => {
+    e.stopPropagation(); // Prevent navigation when removing item
     dispatch(removeFromCart(product));
   };
 
-  const handleIncreaseCount = (product) => {
+  const handleIncreaseCount = (e, product) => {
+    e.stopPropagation(); // Prevent navigation when increasing quantity
     dispatch(addToCart(product));
+  };
+
+  const handleProductClick = (product) => {
+    navigate(`/product/${product.id}`);
   };
 
   const getColorClass = (colorName) => {
     const color = COLORS.find(
       (c) => c.name.toLowerCase() === colorName.toLowerCase()
     );
-    return color ? color.code : "bg-gray-400"; 
+    return color ? color.code : "bg-gray-400";
   };
 
   const formatPrice = (price) => `$${price.toFixed(2)}`;
@@ -59,13 +65,16 @@ const CartPage = () => {
         Back
       </button>
       <div className="container mx-auto p-4 space-y-6">
-        <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Your Cart</h1>
+        <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
+          Your Cart
+        </h1>
 
         <div className="space-y-4">
           {cartItems.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:cursor-pointer"
+              onClick={() => handleProductClick(item)}
             >
               <div className="p-4">
                 <div className="flex items-center gap-4">
@@ -107,7 +116,7 @@ const CartPage = () => {
 
                     <div className="flex items-center mt-3 gap-2">
                       <button
-                        onClick={() => handleRemoveFromCart(item)}
+                        onClick={(e) => handleRemoveFromCart(e, item)}
                         className="p-1 hover:bg-gray-100 rounded-md transition-colors border border-black hover:cursor-pointer"
                         aria-label="Decrease quantity"
                       >
@@ -119,7 +128,7 @@ const CartPage = () => {
                       </span>
 
                       <button
-                        onClick={() => handleIncreaseCount(item)}
+                        onClick={(e) => handleIncreaseCount(e, item)}
                         className="p-1 hover:bg-gray-100 rounded-md transition-colors border border-black hover:cursor-pointer"
                         aria-label="Increase quantity"
                       >
