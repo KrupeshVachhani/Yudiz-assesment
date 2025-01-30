@@ -16,14 +16,15 @@ const ProductFilters = ({
   onSortChange,
   sortBy,
 }) => {
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
-  const [currentRange, setCurrentRange] = useState({ min: 0, max: 1000 });
+  const MAX_PRICE = 1000;
+  const [priceRange, setPriceRange] = useState({ min: 0, max: MAX_PRICE });
+  const [currentRange, setCurrentRange] = useState({ min: 0, max: MAX_PRICE });
 
   useEffect(() => {
     if (products && products.length > 0) {
       const prices = products.map((product) => product.price);
       const minPrice = Math.floor(Math.min(...prices));
-      const maxPrice = Math.ceil(Math.max(...prices));
+      const maxPrice = Math.min(Math.ceil(Math.max(...prices)), MAX_PRICE);
       setPriceRange({ min: minPrice, max: maxPrice });
       setCurrentRange({ min: minPrice, max: maxPrice });
     }
@@ -36,13 +37,18 @@ const ProductFilters = ({
     )?.length || 0;
 
   const handleRangeChange = (e, type) => {
-    const value = parseInt(e.target.value);
+    const value = parseInt(e.target.value) || 0;
     const newRange = { ...currentRange };
 
     if (type === "min") {
-      newRange.min = Math.min(value, currentRange.max - 1);
+      // Ensure min value doesn't exceed max - 1 and stays within bounds
+      newRange.min = Math.max(
+        priceRange.min,
+        Math.min(value, currentRange.max - 1)
+      );
     } else {
-      newRange.max = Math.max(value, currentRange.min + 1);
+      // Ensure max value doesn't exceed MAX_PRICE and stays above min + 1
+      newRange.max = Math.min(Math.max(currentRange.min + 1, value), MAX_PRICE);
     }
 
     setCurrentRange(newRange);
@@ -115,9 +121,9 @@ const ProductFilters = ({
                 type="number"
                 value={currentRange.min}
                 onChange={(e) => handleRangeChange(e, "min")}
-                className="w-15 pl-5 text-center px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-20 pl-5 text-center px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 min={priceRange.min}
-                max={priceRange.max}
+                max={currentRange.max - 1}
               />
             </div>
             <span className="text-gray-600">-</span>
@@ -129,9 +135,9 @@ const ProductFilters = ({
                 type="number"
                 value={currentRange.max}
                 onChange={(e) => handleRangeChange(e, "max")}
-                className="w-15 pl-5 text-center px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min={priceRange.min}
-                max={priceRange.max}
+                className="w-20 pl-5 text-center px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min={currentRange.min + 1}
+                max={MAX_PRICE}
               />
             </div>
           </div>

@@ -59,7 +59,7 @@ const CartPage = () => {
         Back
       </button>
       <div className="container mx-auto p-4 space-y-6">
-        <h1 className="text-4xl font-bold text-center mb-6">Your Cart</h1>
+        <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Your Cart</h1>
 
         <div className="space-y-4">
           {cartItems.map((item) => (
