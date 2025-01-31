@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { COLORS } from "../../../constants";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
 
 const ProductCard = ({
   product,
@@ -11,17 +12,50 @@ const ProductCard = ({
   onAddToCart,
 }) => {
   const [quantity, setQuantity] = useState(1);
-
+  const cart = useSelector((state) => state.cart);
+  
   const handleProductClick = () => {
-    window.open(`/product/${product.id}`, '_blank');
+    window.open(`/product/${product.id}`, "_blank");
   };
-
+  
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
-    onAddToCart(product, quantity);
     setQuantity(1);
+
+    const existingItem = cart.items.find((item) => item.id === product.id);
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+    if (currentQuantity >= 10) {
+      toast.warning(
+        `You can't add more than 10 of ${product.title} to the cart!`,
+        {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        }
+      );
+      return;
+    }
+
+    const maxAddable = 10 - currentQuantity;
+    const finalQuantity = quantity > maxAddable ? maxAddable : quantity;
+
+    onAddToCart(product, finalQuantity);
+
     toast.success(
-      `Added ${product.title} with quantity of ${quantity} to cart successfully!`,
+      `Added ${
+        product.title
+      } with quantity of ${finalQuantity} to cart successfully!${
+        finalQuantity < quantity
+          ? ` (Only ${finalQuantity} added due to limit)`
+          : ""
+      }`,
       {
         position: "top-center",
         autoClose: 2000,

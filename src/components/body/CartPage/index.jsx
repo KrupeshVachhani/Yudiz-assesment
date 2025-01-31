@@ -1,9 +1,14 @@
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, removeFromCart } from "../../../redux/slices/CartSlice";
+import {
+  addToCart,
+  clearCart,
+  removeFromCart,
+} from "../../../redux/slices/CartSlice";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import { COLORS } from "../../../constants";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
 const CartPage = () => {
   const cartItems = useSelector((state) => state.cart.items);
@@ -28,10 +33,29 @@ const CartPage = () => {
   };
 
   const handleProductClick = (product) => {
-    window.open(`/product/${product.id}`, '_blank');
+    window.open(`/product/${product.id}`, "_blank");
   };
-  
 
+  const handleEmptyCart = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action will empty your cart!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, empty it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(clearCart());
+        toast.success("Your cart has been emptied!", {
+          position: "top-center",
+          autoClose: 2000,
+        });
+      }
+    });
+  };
   const getColorClass = (colorName) => {
     const color = COLORS.find(
       (c) => c.name.toLowerCase() === colorName.toLowerCase()
@@ -64,13 +88,22 @@ const CartPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-400 hover:cursor-pointer mb-6"
-      >
-        <ChevronLeft className="w-5 h-5 mr-1" />
-        Back
-      </button>
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-gray-600 hover:text-gray-400 hover:cursor-pointer mb-6"
+        >
+          <ChevronLeft className="w-5 h-5 mr-1" />
+          Back
+        </button>
+        <button
+          onClick={() => handleEmptyCart()}
+          className="text-black hover:cursor-pointer mb-6 border-2 border-black p-1 rounded-lg"
+        >
+          <p>Empty Your Cart</p>
+        </button>
+      </div>
+
       <div className="container mx-auto p-4 space-y-6">
         <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
           Your Cart
