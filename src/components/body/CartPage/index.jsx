@@ -42,7 +42,7 @@ const CartPage = () => {
           className="flex items-center text-gray-200 hover:text-gray-400 hover:cursor-pointer mb-6"
         >
           <ChevronLeft className="w-5 h-5 mr-1" />
-          Back to Products
+          Back 
         </button>
         <h1 className="text-4xl font-bold text-center mb-6">Your Cart</h1>
         <div className="bg-white rounded-lg p-8 text-center shadow-md">

@@ -83,7 +83,7 @@ const ProductDetail = () => {
   if (!product) return null;
 
   return (
-    <div className="p-4">
+    <div className="container mx-auto p-4">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center text-gray-200 hover:text-gray-400 hover:cursor-pointer mb-6"
