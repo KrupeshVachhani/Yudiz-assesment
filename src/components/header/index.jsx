@@ -10,7 +10,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="container mx-auto px-10 h-20 flex items-center justify-between">
+      <header className="container mx-auto px-8 h-20 flex items-center justify-between sticky top-0 bg-white z-50">
         <div className="w-1/4 flex items-center">
           <img src={logo} alt="Flipkart" className="h-12 object-contain" />
         </div>

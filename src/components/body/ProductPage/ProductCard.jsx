@@ -1,7 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { COLORS } from "../../../constants";
-import { useNavigate } from "react-router-dom";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -11,11 +10,10 @@ const ProductCard = ({
   onColorSelect,
   onAddToCart,
 }) => {
-  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
 
   const handleProductClick = () => {
-    navigate(`/product/${product.id}`);
+    window.open(`/product/${product.id}`, '_blank');
   };
 
   const handleAddToCartClick = (e) => {
