@@ -28,11 +28,11 @@ const ProductCategories = ({ Search }) => {
       try {
         const responseProducts = await fetchGetApi("/products");
         const responseCategories = await fetchGetApi("/products/categories");
-        
-        const prices = responseProducts.map(product => product.price);
+
+        const prices = responseProducts.map((product) => product.price);
         const minPrice = Math.floor(Math.min(...prices));
         const maxPrice = Math.ceil(Math.max(...prices));
-        
+
         setProducts(responseProducts);
         setCategories(responseCategories);
         setPriceRange({ min: minPrice, max: maxPrice });
@@ -106,7 +106,7 @@ const ProductCategories = ({ Search }) => {
         selectedCategories.includes(item.category);
       const matchesPrice =
         item.price >= priceRange.min && item.price <= priceRange.max;
-      
+
       return matchesSearch && matchesCategory && matchesPrice;
     });
 
@@ -162,7 +162,8 @@ const ProductCategories = ({ Search }) => {
       />
 
       <div className="mb-4 text-gray-600">
-        Showing {currentProducts.length} of {filteredProducts.length} products
+        Showing {currentProducts.length} of{" "}
+        {filteredProducts.length === 1 ? 0 : filteredProducts.length} products
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

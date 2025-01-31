@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
 import { fetchGetApi } from "../../../helper/GetApi";
 import { addToCart } from "../../../redux/slices/CartSlice";
-import { ChevronLeft } from "lucide-react";
 import { COLORS } from "../../../constants";
 import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -83,10 +82,10 @@ const ProductDetail = () => {
       <div className="container mx-auto p-4 text-center">
         <div className="text-red-500 mb-4">Failed to load product details</div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           className="text-gray-200 hover:underline"
         >
-          Go Back
+          Go To Main Page
         </button>
       </div>
     );
@@ -95,13 +94,6 @@ const ProductDetail = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-gray-200 hover:text-gray-400 hover:cursor-pointer mb-6"
-      >
-        <ChevronLeft />
-        Back
-      </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="flex justify-center items-center bg-white rounded-lg p-4">
