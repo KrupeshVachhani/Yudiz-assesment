@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { COLORS } from "../../../constants";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import CategorySuggestions from "../../suggestions";
 
 const CartPage = () => {
   const cartItems = useSelector((state) => state.cart.items);
@@ -16,19 +17,44 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const uniqueCategories = [...new Set(cartItems.map((item) => item.category))];
+  const cartProductIds = cartItems.map((item) => item.id);
+
   const handleRemoveFromCart = (e, product) => {
     e.stopPropagation();
-    dispatch(removeFromCart(product));
+    dispatch(removeFromCart({ ...product, quantity: product.quantity }));
+    toast.success("Item removed from cart", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
+
+  const handleDecreaseCount = (e, product) => {
+    e.stopPropagation();
+    if (product.quantity > 1) {
+      dispatch(removeFromCart({ ...product, quantity: 1 }));
+      toast.success("Item quantity decreased", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+    } else {
+      handleRemoveFromCart(e, product);
+    }
   };
 
   const handleIncreaseCount = (e, product) => {
     e.stopPropagation();
     if (product.quantity < 10) {
-      const productToAdd = {
-        ...product,
-        quantity: 1,
-      };
-      dispatch(addToCart(productToAdd));
+      dispatch(addToCart({ ...product, quantity: 1 }));
+      toast.success("Item quantity increased", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+    } else {
+      toast.warning("Maximum quantity reached", {
+        position: "top-center",
+        autoClose: 2000,
+      });
     }
   };
 
@@ -38,24 +64,25 @@ const CartPage = () => {
 
   const handleEmptyCart = () => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "This action will empty your cart!",
+      title: "Empty Cart?",
+      text: "This will remove all items from your cart.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, empty it!",
+      confirmButtonText: "Yes, empty it",
       cancelButtonText: "Cancel",
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(clearCart());
-        toast.success("Your cart has been emptied!", {
+        toast.success("Cart emptied successfully!", {
           position: "top-center",
           autoClose: 2000,
         });
       }
     });
   };
+
   const getColorClass = (colorName) => {
     const color = COLORS.find(
       (c) => c.name.toLowerCase() === colorName.toLowerCase()
@@ -70,16 +97,27 @@ const CartPage = () => {
       <div className="container mx-auto p-4">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-gray-200 hover:text-gray-400 hover:cursor-pointer mb-6"
+          className="flex items-center text-gray-600 hover:text-gray-400 mb-6"
         >
           <ChevronLeft className="w-5 h-5 mr-1" />
           Back
         </button>
-        <h1 className="text-4xl font-bold text-center mb-6">Your Cart</h1>
-        <div className="bg-white rounded-lg p-8 text-center shadow-md">
-          <div className="flex flex-col items-center gap-4">
-            <ShoppingCart className="w-16 h-16 text-gray-400" />
-            <p className="text-lg text-gray-500">Your cart is empty</p>
+
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+            Your Cart
+          </h1>
+          <div className="bg-white rounded-lg p-8 text-center shadow-md">
+            <div className="flex flex-col items-center gap-4">
+              <ShoppingCart className="w-16 h-16 text-gray-400" />
+              <p className="text-lg text-gray-500">Your cart is empty</p>
+              <button
+                onClick={() => navigate("/")}
+                className="mt-4 px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors hover:cursor-pointer"
+              >
+                Continue Shopping
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -88,24 +126,24 @@ const CartPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 hover:text-gray-400 hover:cursor-pointer mb-6"
+          className="flex items-center text-gray-600 hover:text-gray-400"
         >
           <ChevronLeft className="w-5 h-5 mr-1" />
           Back
         </button>
         <button
-          onClick={() => handleEmptyCart()}
-          className="text-black hover:cursor-pointer mb-6 border-2 border-black p-1 rounded-lg"
+          onClick={handleEmptyCart}
+          className="flex items-center px-4 py-2 text-red-600 border-2 border-red-600 rounded-lg hover:bg-red-50 transition-colors"
         >
-          <p>Empty Your Cart</p>
+          Empty Cart
         </button>
       </div>
 
-      <div className="container mx-auto p-4 space-y-6">
-        <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <h1 className="text-4xl font-bold text-center text-gray-800">
           Your Cart
         </h1>
 
@@ -113,14 +151,13 @@ const CartPage = () => {
           {cartItems.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:cursor-pointer"
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow hover:cursor-pointer"
               onClick={() => handleProductClick(item)}
             >
               <div className="p-4">
                 <div className="flex flex-col space-y-4">
-                  {/* Top section with image and details */}
                   <div className="flex gap-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
+                    <div className="w-24 h-24 flex-shrink-0">
                       <img
                         src={item.image}
                         alt={item.title}
@@ -129,7 +166,7 @@ const CartPage = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                      <h2 className="text-lg font-semibold text-gray-900 truncate">
                         {item.title}
                       </h2>
                       <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -152,21 +189,20 @@ const CartPage = () => {
                           </div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2 overflow-hidden">
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                         {item.description}
                       </p>
                     </div>
                   </div>
 
-                  {/* Bottom section with controls and price */}
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+                  <div className="flex justify-between items-center pt-2">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={(e) => handleRemoveFromCart(e, item)}
-                        className="p-1 hover:bg-gray-100 rounded-md transition-colors border border-black hover:cursor-pointer"
+                        onClick={(e) => handleDecreaseCount(e, item)}
+                        className="p-2 hover:bg-gray-100 rounded-md transition-colors hover:cursor-pointer"
                         aria-label="Decrease quantity"
                       >
-                        <Minus className="w-5 h-5 text-black" />
+                        <Minus className="w-4 h-4 text-black" />
                       </button>
 
                       <span className="w-8 text-center font-medium text-black">
@@ -175,7 +211,7 @@ const CartPage = () => {
 
                       <button
                         onClick={(e) => handleIncreaseCount(e, item)}
-                        className={`p-1 hover:bg-gray-100 rounded-md transition-colors border border-black hover:cursor-pointer ${
+                        className={`p-2 hover:bg-gray-100 rounded-md transition-colors ${
                           item.quantity >= 10
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -183,15 +219,15 @@ const CartPage = () => {
                         disabled={item.quantity >= 10}
                         aria-label="Increase quantity"
                       >
-                        <Plus className="w-5 h-5 text-black" />
+                        <Plus className="w-4 h-4 text-black hover:cursor-pointer" />
                       </button>
                     </div>
 
-                    <div className="flex flex-col items-center sm:items-end space-y-1">
+                    <div className="flex flex-col items-end space-y-1 text-gray-800">
                       <p className="text-sm text-gray-500">
                         {formatPrice(item.price)} each
                       </p>
-                      <p className="text-lg font-bold text-gray-900">
+                      <p className="text-lg font-bold text-black">
                         {formatPrice(item.price * item.quantity)}
                       </p>
                     </div>
@@ -202,20 +238,23 @@ const CartPage = () => {
           ))}
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="bg-white rounded-lg shadow-md p-6 space-y-4 text-gray-800">
           <div className="space-y-2">
             <div className="flex justify-between text-lg">
-              <span className="text-black">Total Items:</span>
-              <span className="font-medium text-black">{totalQuantity}</span>
+              <span>Total Quantity</span>
+              <span>{totalQuantity} items</span>
             </div>
-            <div className="flex justify-between text-lg">
-              <span className="text-black">Total Amount:</span>
-              <span className="font-bold text-black">
-                {formatPrice(totalAmount)}
-              </span>
+            <div className="flex justify-between text-lg font-semibold">
+              <span>Total Amount</span>
+              <span>{formatPrice(totalAmount)}</span>
             </div>
           </div>
         </div>
+
+        <CategorySuggestions
+          categories={uniqueCategories}
+          productIds={cartProductIds}
+        />
       </div>
     </div>
   );

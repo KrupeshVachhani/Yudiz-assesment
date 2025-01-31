@@ -1,9 +1,10 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { COLORS } from "../../../constants";
-import { Bounce, toast, ToastContainer } from "react-toastify";
+import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
+import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 
 const ProductCard = ({
   product,
@@ -13,11 +14,11 @@ const ProductCard = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
   const cart = useSelector((state) => state.cart);
-  
+
   const handleProductClick = () => {
     window.open(`/product/${product.id}`, "_blank");
   };
-  
+
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
     setQuantity(1);
@@ -30,14 +31,10 @@ const ProductCard = ({
         `You can't add more than 10 of ${product.title} to the cart!`,
         {
           position: "top-center",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
+          autoClose: 1000,
           theme: "light",
           transition: Bounce,
+          onClose: () => console.log("Toast closed"),
         }
       );
       return;
@@ -58,14 +55,14 @@ const ProductCard = ({
       }`,
       {
         position: "top-center",
-        autoClose: 2000,
+        autoClose: 2000, // Ensure 2-second timeout
         hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
+        pauseOnHover: false,
         draggable: true,
-        progress: undefined,
         theme: "light",
         transition: Bounce,
+        onClose: () => console.log("Toast closed"),
       }
     );
   };
@@ -120,21 +117,21 @@ const ProductCard = ({
               />
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 my-3">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 decrementQuantity();
               }}
-              className="text-gray-800 w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-200 hover:cursor-pointer"
+              className="text-gray-800 w-8 h-8 flex items-center justify-center roundedhover:cursor-pointer"
             >
-              -
+              <CiSquareMinus className="text-4xl" />
             </button>
             <div
               onClick={(e) => {
                 e.stopPropagation();
               }}
-              className="w-10 p-1 border border-gray-300 rounded text-center text-gray-800 hover:cursor-default"
+              className="w-10 h-8 flex items-center justify-center border-2 border-gray-700 rounded text-gray-800 hover:cursor-default"
             >
               {quantity}
             </div>
@@ -143,9 +140,9 @@ const ProductCard = ({
                 e.stopPropagation();
                 incrementQuantity();
               }}
-              className="text-gray-800 w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-200 hover:cursor-pointer"
+              className="text-gray-800 w-8 h-8 flex items-center justify-center rounded hover:cursor-pointer"
             >
-              +
+              <CiSquarePlus className="text-4xl" />
             </button>
           </div>
         </div>
@@ -156,7 +153,6 @@ const ProductCard = ({
           Add to Cart
         </button>
       </div>
-      <ToastContainer onClick={(e) => e.stopPropagation()} />
     </div>
   );
 };
