@@ -133,15 +133,20 @@ const ProductFilters = ({
                 <div className="py-1">
                   <button
                     onClick={() => onCategorySelect("all")}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-black"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-black hover:text-gray-700 hover:cursor-pointer"
                   >
                     All Categories
                   </button>
+
                   {categories.map((category) => (
                     <button
                       key={category}
                       onClick={() => onCategorySelect(category)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-black capitalize"
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 hover:text-gray-700 hover:cursor-pointer text-black capitalize ${
+                        selectedCategories.includes(category)
+                          ? "bg-gray-500 text-white"
+                          : ""
+                      }`}
                     >
                       {category}
                     </button>
