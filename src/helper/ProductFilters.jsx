@@ -1,6 +1,6 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { ChevronDown, X } from "lucide-react";
+import PropTypes from "prop-types";
 
 const ProductFilters = ({
   categories,
@@ -19,6 +19,10 @@ const ProductFilters = ({
   const MAX_PRICE = 1000;
   const [priceRange, setPriceRange] = useState({ min: 0, max: MAX_PRICE });
   const [currentRange, setCurrentRange] = useState({ min: 0, max: MAX_PRICE });
+  const [inputValues, setInputValues] = useState({
+    min: "0",
+    max: MAX_PRICE.toString(),
+  });
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -27,6 +31,7 @@ const ProductFilters = ({
       const maxPrice = Math.min(Math.ceil(Math.max(...prices)), MAX_PRICE);
       setPriceRange({ min: minPrice, max: maxPrice });
       setCurrentRange({ min: minPrice, max: maxPrice });
+      setInputValues({ min: minPrice.toString(), max: maxPrice.toString() });
     }
   }, [products]);
 
@@ -36,22 +41,62 @@ const ProductFilters = ({
         product.price >= currentRange.min && product.price <= currentRange.max
     )?.length || 0;
 
+  const handleInputFocus = (e) => {
+    e.target.value = "";
+  };
+
+  const handleInputChange = (e, type) => {
+    let value = e.target.value;
+
+    // Remove any non-numeric characters
+    value = value.replace(/[^0-9]/g, "");
+
+    // Parse the value and ensure it's within bounds
+    let numValue = parseInt(value || "0");
+    if (numValue > MAX_PRICE) {
+      numValue = MAX_PRICE;
+      value = MAX_PRICE.toString();
+    }
+
+    setInputValues((prev) => ({ ...prev, [type]: value }));
+
+    // Update the range slider and notify parent
+    const newRange = {
+      ...currentRange,
+      [type]: numValue,
+    };
+    setCurrentRange(newRange);
+    onPriceRangeChange(newRange);
+  };
+
+  const handleInputBlur = (e, type) => {
+    let value = e.target.value;
+
+    // If empty, reset to current range value
+    if (!value) {
+      value = currentRange[type].toString();
+      setInputValues((prev) => ({ ...prev, [type]: value }));
+    }
+  };
+
   const handleRangeChange = (e, type) => {
     const value = parseInt(e.target.value) || 0;
     const newRange = { ...currentRange };
 
     if (type === "min") {
-      // Ensure min value doesn't exceed max - 1 and stays within bounds
       newRange.min = Math.max(
         priceRange.min,
         Math.min(value, currentRange.max - 1)
       );
     } else {
-      // Ensure max value doesn't exceed MAX_PRICE and stays above min + 1
       newRange.max = Math.min(Math.max(currentRange.min + 1, value), MAX_PRICE);
     }
 
     setCurrentRange(newRange);
+    setInputValues({
+      min: newRange.min.toString(),
+      max: newRange.max.toString(),
+    });
     onPriceRangeChange(newRange);
   };
 
@@ -118,12 +163,13 @@ const ProductFilters = ({
                 $
               </span>
               <input
-                type="number"
-                value={currentRange.min}
-                onChange={(e) => handleRangeChange(e, "min")}
+                type="text"
+                value={inputValues.min}
+                onChange={(e) => handleInputChange(e, "min")}
+                onFocus={handleInputFocus}
+                onBlur={(e) => handleInputBlur(e, "min")}
                 className="w-20 pl-5 text-center px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min={priceRange.min}
-                max={currentRange.max - 1}
+                placeholder="0"
               />
             </div>
             <span className="text-gray-600">-</span>
@@ -132,18 +178,18 @@ const ProductFilters = ({
                 $
               </span>
               <input
-                type="number"
-                value={currentRange.max}
-                onChange={(e) => handleRangeChange(e, "max")}
+                type="text"
+                value={inputValues.max}
+                onChange={(e) => handleInputChange(e, "max")}
+                onFocus={handleInputFocus}
+                onBlur={(e) => handleInputBlur(e, "max")}
                 className="w-20 pl-5 text-center px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min={currentRange.min + 1}
-                max={MAX_PRICE}
+                placeholder={MAX_PRICE.toString()}
               />
             </div>
           </div>
 
           <div className="relative w-48 h-2">
-            {/* Track and thumb styles */}
             <style>
               {`
                 .range-slider::-webkit-slider-thumb {
@@ -174,10 +220,8 @@ const ProductFilters = ({
               `}
             </style>
 
-            {/* Background track */}
             <div className="absolute w-full h-1 bg-gray-200 rounded-lg top-0.5"></div>
 
-            {/* Blue range indicator */}
             <div
               className="absolute h-1 bg-blue-500 rounded-lg top-0.5"
               style={{
@@ -195,7 +239,6 @@ const ProductFilters = ({
               }}
             ></div>
 
-            {/* Range inputs */}
             <input
               type="range"
               min={priceRange.min}
@@ -289,6 +332,31 @@ const ProductFilters = ({
       )}
     </div>
   );
+};
+
+ProductFilters.propTypes = {
+  categories: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selectedCategories: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onCategorySelect: PropTypes.func.isRequired,
+  onRemoveCategory: PropTypes.func.isRequired,
+  isDropdownOpen: PropTypes.bool.isRequired,
+  setIsDropdownOpen: PropTypes.func.isRequired,
+  isSortDropdownOpen: PropTypes.bool.isRequired,
+  setIsSortDropdownOpen: PropTypes.func.isRequired,
+  products: PropTypes.arrayOf(
+    PropTypes.shape({
+      price: PropTypes.number.isRequired,
+    })
+  ).isRequired,
+  onPriceRangeChange: PropTypes.func.isRequired,
+  onSortChange: PropTypes.func.isRequired,
+  sortBy: PropTypes.oneOf([
+    "price_asc",
+    "price_desc",
+    "name_asc",
+    "name_desc",
+    "",
+  ]).isRequired,
 };
 
 export default ProductFilters;
