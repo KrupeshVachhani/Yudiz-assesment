@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { COLORS } from "../../../constants";
+// import { COLORS } from "../../../constants";
 import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
@@ -55,7 +55,7 @@ const ProductCard = ({
       }`,
       {
         position: "top-center",
-        autoClose: 2000, // Ensure 2-second timeout
+        autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: false,
@@ -87,7 +87,7 @@ const ProductCard = ({
     >
       <div className="flex justify-center items-center mb-4">
         <img
-          src={product.image}
+          src={product.image_url}
           alt={product.title}
           className="w-64 h-48 object-contain rounded-xl"
           loading="lazy"
@@ -103,17 +103,16 @@ const ProductCard = ({
         </p>
         <div className="flex items-center gap-4">
           <div className="w-20 flex gap-3">
-            {COLORS.map((color) => (
+            {product.colors && product.colors.map((color, index) => (
               <button
-                key={color.id}
-                onClick={(e) => handleColorClick(e, color.name)}
-                className={`w-4 h-4 ${
-                  color.code
-                } border rounded-full hover:cursor-pointer ${
-                  selectedColors[product.id] === color.name
+                key={index}
+                onClick={(e) => handleColorClick(e, color)}
+                className={`w-4 h-4 bg-[${color}] border rounded-full hover:cursor-pointer ${
+                  selectedColors[product.id] === color
                     ? "ring-2 ring-offset-2 ring-gray-500"
                     : ""
                 }`}
+                style={{ backgroundColor: color }}
               />
             ))}
           </div>
@@ -123,7 +122,7 @@ const ProductCard = ({
                 e.stopPropagation();
                 decrementQuantity();
               }}
-              className="text-gray-800 w-8 h-8 flex items-center justify-center roundedhover:cursor-pointer"
+              className="text-gray-800 w-8 h-8 flex items-center justify-center rounded hover:cursor-pointer"
             >
               <CiSquareMinus className="text-4xl" />
             </button>

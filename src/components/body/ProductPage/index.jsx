@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import ShimmerUIProducts from "../../../helper/ShimmerUIProducts";
-import { fetchGetApi } from "../../../helper/GetApi";
 import { addToCart } from "../../../redux/slices/CartSlice";
 import PropTypes from "prop-types";
 import ProductCard from "./ProductCard";
 import { usePagination } from "../../../hooks/UsePagination.jsx";
 import ProductFilters from "../../../helper/ProductFilters.jsx";
+import productData from "../../../Data.json";
+import HeroBanner from "./HeroBanner";
+import OfferBanners from "./OfferBanners";
+import { motion } from "framer-motion";
 
 const ProductCategories = ({ Search }) => {
   const [products, setProducts] = useState([]);
@@ -24,104 +27,82 @@ const ProductCategories = ({ Search }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchAllProducts = async () => {
-      try {
-        const responseProducts = await fetchGetApi("/products");
-        const responseCategories = await fetchGetApi("/products/categories");
+    try {
+      setProducts(productData);
+      const uniqueCategories = [...new Set(productData.map(product => product.category))];
+      setCategories(uniqueCategories);
 
-        const prices = responseProducts.map((product) => product.price);
-        const minPrice = Math.floor(Math.min(...prices));
-        const maxPrice = Math.ceil(Math.max(...prices));
-
-        setProducts(responseProducts);
-        setCategories(responseCategories);
-        setPriceRange({ min: minPrice, max: maxPrice });
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
+      if (productData.length > 0) {
+        const prices = productData.map(product => product.price);
+        setPriceRange({ min: Math.floor(Math.min(...prices)), max: Math.ceil(Math.max(...prices)) });
       }
-    };
-    fetchAllProducts();
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error loading product data:", error);
+      setLoading(false);
+    }
   }, []);
 
   const handleAddToCart = useCallback(
     (product, quantity) => {
-      const selectedColor = selectedColors[product.id] || "default";
+      const selectedColor = selectedColors[product.id] || (product.colors?.[0] ?? null);
       dispatch(addToCart({ ...product, selectedColor, quantity }));
     },
     [dispatch, selectedColors]
   );
 
   const handleColorSelect = useCallback((productId, colorName) => {
-    setSelectedColors((prev) => ({
-      ...prev,
-      [productId]: colorName,
-    }));
+    setSelectedColors(prev => ({ ...prev, [productId]: colorName }));
   }, []);
 
-  const handleCategorySelect = (category) => {
-    setSelectedCategories((prev) => {
+  const handleCategorySelect = category => {
+    setSelectedCategories(prev => {
       if (category === "all") return ["all"];
-      const newCategories = prev.filter((cat) => cat !== "all");
-      if (newCategories.includes(category)) {
-        const result = newCategories.filter((cat) => cat !== category);
+      const filtered = prev.filter(cat => cat !== "all");
+      if (filtered.includes(category)) {
+        const result = filtered.filter(cat => cat !== category);
         return result.length === 0 ? ["all"] : result;
       }
-      return [...newCategories, category];
+      return [...filtered, category];
     });
     setCurrentPage(1);
     setIsDropdownOpen(false);
   };
 
-  const handleRemoveCategory = (categoryToRemove) => {
-    setSelectedCategories((prev) => {
-      const newCategories = prev.filter(
-        (category) => category !== categoryToRemove
-      );
-      return newCategories.length === 0 ? ["all"] : newCategories;
+  const handleRemoveCategory = categoryToRemove => {
+    setSelectedCategories(prev => {
+      const result = prev.filter(cat => cat !== categoryToRemove);
+      return result.length === 0 ? ["all"] : result;
     });
     setCurrentPage(1);
   };
 
-  const handlePriceRangeChange = (newRange) => {
+  const handlePriceRangeChange = newRange => {
     setPriceRange(newRange);
     setCurrentPage(1);
   };
 
-  const handleSortChange = (sortType) => {
+  const handleSortChange = sortType => {
     setSortBy(sortType);
     setIsSortDropdownOpen(false);
     setCurrentPage(1);
   };
 
   const filteredProducts = useMemo(() => {
-    let filtered = products.filter((item) => {
-      const matchesSearch = Search
-        ? item.title.toLowerCase().includes(Search.toLowerCase()) ||
-          item.description.toLowerCase().includes(Search.toLowerCase())
-        : true;
-      const matchesCategory =
-        selectedCategories.includes("all") ||
-        selectedCategories.includes(item.category);
-      const matchesPrice =
-        item.price >= priceRange.min && item.price <= priceRange.max;
-
+    let filtered = products.filter(item => {
+      const matchesSearch = Search ? item.title.toLowerCase().includes(Search.toLowerCase()) || (item.description?.toLowerCase().includes(Search.toLowerCase())) : true;
+      const matchesCategory = selectedCategories.includes("all") || selectedCategories.includes(item.category);
+      const matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max;
       return matchesSearch && matchesCategory && matchesPrice;
     });
 
-    // Apply sorting
     switch (sortBy) {
-      case "price_asc":
-        return [...filtered].sort((a, b) => a.price - b.price);
-      case "price_desc":
-        return [...filtered].sort((a, b) => b.price - a.price);
-      case "name_asc":
-        return [...filtered].sort((a, b) => a.title.localeCompare(b.title));
-      case "name_desc":
-        return [...filtered].sort((a, b) => b.title.localeCompare(a.title));
-      default:
-        return filtered;
+      case "price_asc": return [...filtered].sort((a, b) => a.price - b.price);
+      case "price_desc": return [...filtered].sort((a, b) => b.price - a.price);
+      case "name_asc": return [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+      case "name_desc": return [...filtered].sort((a, b) => b.title.localeCompare(a.title));
+      default: return filtered;
     }
   }, [products, Search, selectedCategories, priceRange, sortBy]);
 
@@ -137,7 +118,7 @@ const ProductCategories = ({ Search }) => {
     return filteredProducts.slice(start, start + itemsPerPage);
   }, [filteredProducts, currentPage]);
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = pageNumber => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -145,7 +126,15 @@ const ProductCategories = ({ Search }) => {
   if (loading) return <ShimmerUIProducts />;
 
   return (
-    <div className="container mx-auto px-16 mt-4">
+    <motion.div
+      className="container mx-auto px-4 lg:px-16 mt-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <HeroBanner />
+      <OfferBanners />
+
       <ProductFilters
         categories={categories}
         selectedCategories={selectedCategories}
@@ -159,24 +148,43 @@ const ProductCategories = ({ Search }) => {
         onPriceRangeChange={handlePriceRangeChange}
         onSortChange={handleSortChange}
         sortBy={sortBy}
+        priceRange={priceRange}
       />
 
-      <div className="mb-4 text-gray-600">
-        Showing {currentProducts.length} of{" "}
-        {filteredProducts.length} products
-      </div>
+      <motion.div
+        className="mb-4 text-gray-600"
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        Showing {currentProducts.length} of {filteredProducts.length} products
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {currentProducts.map((product) => (
-          <ProductCard
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+        }}
+      >
+        {currentProducts.map(product => (
+          <motion.div
             key={product.id}
-            product={product}
-            selectedColors={selectedColors}
-            onColorSelect={handleColorSelect}
-            onAddToCart={handleAddToCart}
-          />
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <ProductCard
+              product={product}
+              selectedColors={selectedColors}
+              onColorSelect={handleColorSelect}
+              onAddToCart={handleAddToCart}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {filteredProducts.length === 0 && (
         <div className="text-center py-8 text-gray-500">
@@ -189,23 +197,15 @@ const ProductCategories = ({ Search }) => {
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={!pagination.canPreviousPage}
-            className={`px-4 py-2 rounded ${
-              !pagination.canPreviousPage
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-400 hover:text-white"
-            }`}
+            className={`px-4 py-2 rounded ${!pagination.canPreviousPage ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-gray-200 text-gray-800 hover:bg-gray-400 hover:text-white"}`}
           >
             Previous
           </button>
-          {pagination.pageNumbers.map((pageNumber) => (
+          {pagination.pageNumbers.map(pageNumber => (
             <button
               key={pageNumber}
               onClick={() => handlePageChange(pageNumber)}
-              className={`px-4 py-2 rounded ${
-                currentPage === pageNumber
-                  ? "bg-gray-500 text-white"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 rounded ${currentPage === pageNumber ? "bg-gray-500 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-400 hover:text-white"}`}
             >
               {pageNumber}
             </button>
@@ -213,17 +213,13 @@ const ProductCategories = ({ Search }) => {
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={!pagination.canNextPage}
-            className={`px-4 py-2 rounded ${
-              !pagination.canNextPage
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-400 hover:text-white"
-            }`}
+            className={`px-4 py-2 rounded ${!pagination.canNextPage ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-gray-200 text-gray-800 hover:bg-gray-400 hover:text-white"}`}
           >
             Next
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

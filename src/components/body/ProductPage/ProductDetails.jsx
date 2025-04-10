@@ -1,30 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { useQuery } from "@tanstack/react-query";
-import { fetchGetApi } from "../../../helper/GetApi";
 import { addToCart } from "../../../redux/slices/CartSlice";
-import { COLORS } from "../../../constants";
 import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CategorySuggestions from "../../suggestions";
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
+import productData from "../../../Data.json";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [selectedColor, setSelectedColor] = useState("default");
+  const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    data: product,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => fetchGetApi(`/products/${id}`),
-  });
+  useEffect(() => {
+    // Find product from local data
+    const foundProduct = productData.find(item => item.id === parseInt(id));
+    
+    if (foundProduct) {
+      setProduct(foundProduct);
+      // Set default color if colors exist
+      if (foundProduct.colors && foundProduct.colors.length > 0) {
+        setSelectedColor(foundProduct.colors[0]);
+      }
+    }
+    
+    setIsLoading(false);
+  }, [id]);
 
   const handleAddToCart = (e) => {
     if (product) {
@@ -77,28 +83,25 @@ const ProductDetail = () => {
       </div>
     );
 
-  if (error)
+  if (!product)
     return (
       <div className="container mx-auto p-4 text-center">
-        <div className="text-red-500 mb-4">Failed to load product details</div>
+        <div className="text-red-500 mb-4">Product not found</div>
         <button
           onClick={() => navigate('/')}
-          className="text-gray-200 hover:underline"
+          className="text-gray-800 hover:underline"
         >
           Go To Main Page
         </button>
       </div>
     );
 
-  if (!product) return null;
-
   return (
     <div className="container mx-auto p-4">
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="flex justify-center items-center bg-white rounded-lg p-4">
           <img
-            src={product.image}
+            src={product.image_url}
             alt={product.title}
             className="max-w-full h-auto max-h-[500px] object-contain"
           />
@@ -109,25 +112,26 @@ const ProductDetail = () => {
           <p className="text-2xl font-semibold">${product.price}</p>
           <p className="text-gray-600 leading-relaxed">{product.description}</p>
 
-          <div className="space-y-2">
-            <h2 className="font-semibold">Select Color</h2>
-            <div className="flex space-x-3">
-              {COLORS.map((color) => (
-                <button
-                  key={color.name}
-                  onClick={() => setSelectedColor(color.name)}
-                  className={`w-8 h-8 ${
-                    color.code
-                  } border rounded-full transition-all ${
-                    selectedColor === color.name
-                      ? "ring-2 ring-offset-2 ring-gray-500"
-                      : "hover:ring-2 hover:ring-offset-2 hover:ring-gray-300"
-                  }`}
-                  aria-label={`Select ${color.name} color`}
-                />
-              ))}
+          {product.colors && product.colors.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="font-semibold">Select Color</h2>
+              <div className="flex space-x-3">
+                {product.colors.map((color, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedColor(color)}
+                    className={`w-8 h-8 border rounded-full transition-all ${
+                      selectedColor === color
+                        ? "ring-2 ring-offset-2 ring-gray-500"
+                        : "hover:ring-2 hover:ring-offset-2 hover:ring-gray-300"
+                    }`}
+                    style={{ backgroundColor: color }}
+                    aria-label={`Select color`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <h2 className="font-semibold">Quantity</h2>
@@ -137,7 +141,7 @@ const ProductDetail = () => {
                   e.stopPropagation();
                   decrementQuantity();
                 }}
-                className="text-gray-800 w-8 h-8 flex items-center justify-center roundedhover:cursor-pointer"
+                className="text-gray-800 w-8 h-8 flex items-center justify-center rounded hover:cursor-pointer"
               >
                 <CiSquareMinus className="text-4xl" />
               </button>
@@ -188,12 +192,11 @@ const ProductDetail = () => {
               <p className="text-gray-600">
                 Rating:{" "}
                 <span className="font-medium">
-                  {product.rating?.rate || "N/A"}
+                  {product.rating || "N/A"}
                 </span>
-                {product.rating?.count > 0 && (
-                  <span className="text-gray-500">
-                    {" "}
-                    ({product.rating.count} reviews)
+                {product.stock > 0 && (
+                  <span className="text-gray-500 ml-2">
+                    In Stock: {product.stock}
                   </span>
                 )}
               </p>
