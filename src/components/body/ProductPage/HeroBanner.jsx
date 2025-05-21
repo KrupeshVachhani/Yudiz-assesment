@@ -12,7 +12,7 @@ const HeroBanner = () => {
   }, []);
 
   return (
-    <div className="relative h-[60vh] overflow-hidden rounded-2xl mb-6">
+    <div className="relative h-[60vh] overflow-hidden rounded-2xl mb-6 mt-10">
       <motion.img
         src="https://images.unsplash.com/photo-1585559606984-2030f1b15a3e"
         alt="Hero Banner"

@@ -21,7 +21,7 @@ const offerData = [
 
 const OfferBanners = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 mt-10">
       {offerData.map((offer, index) => (
         <motion.div
           key={index}
