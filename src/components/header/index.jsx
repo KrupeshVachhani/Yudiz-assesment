@@ -18,7 +18,7 @@ const Header = () => {
         <div className="w-1/2 flex justify-center">
           <div className="relative w-full max-w-xl">
             <input
-              type="text"
+              type="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search for products..."
